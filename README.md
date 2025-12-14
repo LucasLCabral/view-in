@@ -66,7 +66,10 @@ Antes de começar, certifique-se de ter instalado:
 - **Java 17+** ([Download](https://www.oracle.com/java/technologies/downloads/#java17))
 - **Maven 3.6+** ([Download](https://maven.apache.org/download.cgi))
 - **Node.js 18+** e **npm** ([Download](https://nodejs.org/))
-- **Oracle Database 12c+** (acesso ao banco FIAP)
+- **Banco de Dados** (escolha uma opção):
+  - **Oracle Database 12c+** (se tiver acesso ao banco FIAP)
+  - **PostgreSQL 12+** (recomendado para desenvolvimento local)
+  - **H2 Database** (mais simples, embutido, sem instalação)
 - **Git** ([Download](https://git-scm.com/downloads))
 - **ngrok** (opcional, para expor o backend localmente) ([Download](https://ngrok.com/))
 
@@ -83,16 +86,22 @@ cd viewin
 
 ---
 
-### 2️⃣ Configurar o Banco de Dados Oracle
+### 2️⃣ Configurar o Banco de Dados
 
-#### 2.1. Conectar ao Oracle
+Você pode usar **Oracle** (se tiver acesso ao banco FIAP) ou um **banco local** (PostgreSQL ou H2) para desenvolvimento.
+
+---
+
+#### 📘 Opção A: Oracle Database (FIAP)
+
+**2.1. Conectar ao Oracle**
 
 Certifique-se de ter acesso ao banco Oracle da FIAP:
 - **Host**: `oracle.fiap.com.br`
 - **Port**: `1521`
 - **SID**: `ORCL`
 
-#### 2.2. Executar Scripts SQL
+**2.2. Executar Scripts SQL**
 
 Execute os scripts na ordem abaixo:
 
@@ -100,23 +109,17 @@ Execute os scripts na ordem abaixo:
 cd backend-gs/src/main/resources/sql
 ```
 
-**Opção A: Criar banco do zero (recomendado)**
+**Criar banco do zero (recomendado)**
 ```sql
-sqlplus RM554589/020106@oracle.fiap.com.br:1521/ORCL @init_database.sql
+sqlplus SEU_RM/SUA_SENHA@oracle.fiap.com.br:1521/ORCL @init_database.sql
 ```
 
-**Opção B: Criar apenas as tabelas**
+**Criar apenas as tabelas**
 ```sql
-sqlplus RM554589/020106@oracle.fiap.com.br:1521/ORCL @create_tables.sql
+sqlplus SEU_RM/SUA_SENHA@oracle.fiap.com.br:1521/ORCL @create_tables.sql
 ```
 
-**Opção C: Se já tem tabelas e precisa adicionar relacionamento User**
-```sql
-sqlplus RM554589/020106@oracle.fiap.com.br:1521/ORCL @add_user_relationship.sql
-sqlplus RM554589/020106@oracle.fiap.com.br:1521/ORCL @fix_user_relationship.sql
-```
-
-#### 2.3. Verificar Estrutura
+**2.3. Verificar Estrutura**
 
 ```sql
 -- Verificar tabelas criadas
@@ -130,19 +133,126 @@ DESC AUDIO_FILES;
 
 ---
 
+#### 🐘 Opção B: PostgreSQL (Recomendado para Desenvolvimento Local)
+
+**2.1. Instalar PostgreSQL**
+
+```bash
+# macOS
+brew install postgresql@14
+brew services start postgresql@14
+
+# Ubuntu/Debian
+sudo apt-get install postgresql postgresql-contrib
+sudo systemctl start postgresql
+
+# Windows
+# Baixe em: https://www.postgresql.org/download/windows/
+```
+
+**2.2. Criar Banco de Dados**
+
+```bash
+# Conectar ao PostgreSQL
+psql -U postgres
+
+# Criar banco de dados
+CREATE DATABASE viewin_db;
+
+# Criar usuário (opcional)
+CREATE USER viewin_user WITH PASSWORD 'sua_senha';
+GRANT ALL PRIVILEGES ON DATABASE viewin_db TO viewin_user;
+
+# Sair
+\q
+```
+
+**2.3. Executar Scripts SQL**
+
+Um script SQL adaptado para PostgreSQL já está disponível:
+
+```bash
+cd backend-gs/src/main/resources/sql
+psql -U viewin_user -d viewin_db -f create_tables_postgres.sql
+```
+
+Ou execute diretamente no psql:
+
+```bash
+psql -U viewin_user -d viewin_db
+\i create_tables_postgres.sql
+```
+
+**2.5. Configurar `application.properties`**
+
+```properties
+# PostgreSQL Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/viewin_db
+spring.datasource.username=viewin_user
+spring.datasource.password=sua_senha
+spring.datasource.driver-class-name=org.postgresql.Driver
+```
+
+---
+
+#### 💾 Opção C: H2 Database (Mais Simples - Sem Instalação)
+
+**2.1. Configurar H2 no `application.properties`**
+
+```properties
+# H2 Database Configuration (embutido, sem instalação)
+spring.datasource.url=jdbc:h2:mem:viewin_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+
+# H2 Console (acessível em http://localhost:8080/h2-console)
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+```
+
+**2.2. Adicionar Dependência H2 no `pom.xml`**
+
+Se ainda não estiver presente, adicione:
+
+```xml
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>runtime</scope>
+</dependency>
+```
+
+**2.3. Criar Script de Inicialização**
+
+Crie `src/main/resources/schema.sql` ou use o script fornecido:
+
+```bash
+# O script create_tables_h2.sql já está disponível
+# O Spring Boot executará automaticamente se configurado
+```
+
+**Nota**: H2 é em memória por padrão. Para persistência, use:
+```properties
+spring.datasource.url=jdbc:h2:file:./data/viewin_db
+```
+
+---
+
 ### 3️⃣ Configurar o Backend
 
 #### 3.1. Editar `application.properties`
 
 Abra o arquivo `backend-gs/src/main/resources/application.properties` e configure:
 
+**Para Oracle:**
 ```properties
 # Oracle Database (substitua com suas credenciais)
 oracle.host=oracle.fiap.com.br
 oracle.port=1521
 oracle.sid=ORCL
-oracle.username=RM554589
-oracle.password=020106
+oracle.username=SEU_RM
+oracle.password=SUA_SENHA
 
 # JWT (mantenha ou altere para produção)
 jwt.secret=suaChaveSecretaSuperSegura123
@@ -152,7 +262,7 @@ jwt.expiration=86400000
 aws.region=us-east-1
 s3.bucket.name=interview-ai-assets
 
-# Lambda URLs (configure com suas URLs)
+# Lambda URLs (configure com suas URLs - veja seção de Infraestrutura)
 lambda.url=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
 lambda.presigned.url=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
 lambda.upload.urls=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
@@ -161,6 +271,64 @@ lambda.check.report.url=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
 # Backend Public URL (ngrok - será atualizado automaticamente)
 backend.public.url=https://sua-url-ngrok.ngrok-free.dev
 ```
+
+**Para PostgreSQL:**
+```properties
+# PostgreSQL Database
+spring.datasource.url=jdbc:postgresql://localhost:5432/viewin_db
+spring.datasource.username=viewin_user
+spring.datasource.password=sua_senha
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JWT
+jwt.secret=suaChaveSecretaSuperSegura123
+jwt.expiration=86400000
+
+# AWS
+aws.region=us-east-1
+s3.bucket.name=interview-ai-assets
+
+# Lambda URLs
+lambda.url=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
+lambda.presigned.url=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
+lambda.upload.urls=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
+lambda.check.report.url=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
+
+# Backend Public URL
+backend.public.url=https://sua-url-ngrok.ngrok-free.dev
+```
+
+**Para H2 (desenvolvimento local simples):**
+```properties
+# H2 Database (embutido, sem instalação)
+spring.datasource.url=jdbc:h2:mem:viewin_db;DB_CLOSE_DELAY=-1
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.h2.console.enabled=true
+
+# JWT
+jwt.secret=suaChaveSecretaSuperSegura123
+jwt.expiration=86400000
+
+# AWS
+aws.region=us-east-1
+s3.bucket.name=interview-ai-assets
+
+# Lambda URLs
+lambda.url=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
+lambda.presigned.url=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
+lambda.upload.urls=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
+lambda.check.report.url=https://sua-lambda-url.lambda-url.us-east-1.on.aws/
+
+# Backend Public URL
+backend.public.url=https://sua-url-ngrok.ngrok-free.dev
+```
+
+**⚠️ Importante:**
+- Substitua `SEU_RM` e `SUA_SENHA` pelas suas credenciais reais
+- Nunca commite o arquivo `application.properties` com credenciais reais
+- Use variáveis de ambiente em produção
 
 #### 3.2. Instalar Dependências
 
@@ -305,6 +473,7 @@ viewin/
 │   └── vite.config.ts
 │
 ├── infra/                      # Infraestrutura AWS
+│   ├── terraform/              # Configuração Terraform (IaC)
 │   ├── GenerateInterview/      # Lambdas de geração de entrevista
 │   └── GenerateReport/         # Lambdas de geração de relatório
 │
@@ -399,14 +568,36 @@ curl -X POST http://localhost:8080/api/jobReport/create \
 
 ## ⚠️ Troubleshooting
 
-### Backend não conecta ao Oracle
+### Backend não conecta ao Banco de Dados
 
+**Para Oracle:**
 1. Verifique as credenciais no `application.properties`
 2. Teste a conexão manualmente:
    ```sql
-   sqlplus RM554589/020106@oracle.fiap.com.br:1521/ORCL
+   sqlplus SEU_RM/SUA_SENHA@oracle.fiap.com.br:1521/ORCL
    ```
 3. Verifique se o driver Oracle está no classpath
+4. Verifique se tem acesso à rede da FIAP (VPN se necessário)
+
+**Para PostgreSQL:**
+1. Verifique se o PostgreSQL está rodando:
+   ```bash
+   # macOS
+   brew services list | grep postgresql
+   
+   # Linux
+   sudo systemctl status postgresql
+   ```
+2. Teste a conexão:
+   ```bash
+   psql -U viewin_user -d viewin_db
+   ```
+3. Verifique se o banco e usuário foram criados corretamente
+
+**Para H2:**
+1. Verifique se a dependência H2 está no `pom.xml`
+2. Acesse o console H2 em: `http://localhost:8080/h2-console`
+3. Use JDBC URL: `jdbc:h2:mem:viewin_db`
 
 ### Frontend não conecta ao Backend
 
@@ -428,6 +619,8 @@ curl -X POST http://localhost:8080/api/jobReport/create \
 - 🔒 Use variáveis de ambiente ou arquivos `.env` para produção
 - 🗄️ Sempre faça backup antes de executar scripts de migração
 - 📦 O projeto usa JDBC puro (não JPA/Hibernate) conforme requisitos
+- 🏗️ **Infraestrutura AWS**: Use Terraform para criar recursos AWS. Veja `infra/terraform/README.md`
+- 💾 **Banco Local**: Para desenvolvimento, use PostgreSQL ou H2 ao invés de Oracle se não tiver acesso
 
 ---
 
