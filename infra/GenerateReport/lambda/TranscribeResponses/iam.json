@@ -1,0 +1,61 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "CloudWatchLogs",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Sid": "S3Access",
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListBucket"
+            ],
+            "Resource": [
+                "arn:aws:s3:::interview-ai-assets",
+                "arn:aws:s3:::interview-ai-assets/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "transcribe:StartTranscriptionJob",
+                "transcribe:GetTranscriptionJob",
+                "transcribe:DeleteTranscriptionJob"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "LambdaInvoke",
+            "Effect": "Allow",
+            "Action": [
+                "lambda:InvokeFunction"
+            ],
+            "Resource": "arn:aws:lambda:*:*:function:GenerateInterviewReport"
+        },
+        {
+            "Sid": "SNSPublish",
+            "Effect": "Allow",
+            "Action": [
+                "sns:Publish"
+            ],
+            "Resource": "arn:aws:sns:*:*:interview-transcription-events"
+        },
+        {
+            "Sid": "SQSSendMessage",
+            "Effect": "Allow",
+            "Action": [
+                "sqs:SendMessage"
+            ],
+            "Resource": "arn:aws:sqs:*:*:*"
+        }
+    ]
+}

@@ -1,0 +1,43 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "logs:CreateLogGroup",
+            "Resource": "arn:aws:logs:us-east-1:184489984259:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": [
+                "arn:aws:logs:us-east-1:184489984259:log-group:/aws/lambda/GenerateInterviewReport:*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListBucket",
+                "s3:HeadObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::interview-ai-assets",
+                "arn:aws:s3:::interview-ai-assets/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "bedrock:InvokeAgent"
+            ],
+            "Resource": [
+                "arn:aws:bedrock:us-east-1:184489984259:agent-alias/*"
+            ]
+        }
+    ]
+}
+

@@ -1,0 +1,9 @@
+View:in - Entrevistas do Futuro, hoje.
+
+Creators:
+Lucas Cabral - RM554589
+Thiago Barros - RM555485
+Yuri Lopes - RM555522
+
+- 🎯 **[Pitch do Projeto](https://youtu.be/cnVZKO3Y-pU)** - Apresentação do ViewIn
+- 🔧 **[How We Built It](https://youtu.be/YnQi9F0burw)** - Por favor, considerar assistir para avaliacao!

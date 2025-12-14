@@ -1,0 +1,42 @@
+# Copie este arquivo para terraform.tfvars e preencha com seus valores
+# terraform.tfvars está no .gitignore e não deve ser commitado
+
+aws_region = "us-east-1"
+environment = "prod"
+
+# Bucket S3 a ser criado (deve ser único globalmente)
+# IMPORTANTE: Escolha um nome único! O bucket S3 deve ser único em toda a AWS
+bucket_name = "interview-ai-assets-seu-nome-unico"
+
+# Backend S3 para state do Terraform
+backend_bucket_name = "terraform-state-viewin"
+backend_key = "viewin/infra/terraform.tfstate"
+backend_dynamodb_table = "terraform-state-lock"
+
+# IDs dos Bedrock Agents (ajuste conforme necessário)
+bedrock_agent_id = "Y32KRP3JHL"
+bedrock_agent_alias_id = "WZUDFCOGY7"
+bedrock_report_agent_id = "U1F06PNPK3"
+bedrock_report_agent_alias_id = "MZPYGLDR5T"
+
+# API Key do ElevenLabs (será usado como variável de ambiente)
+elevenlabs_api_key = "sua-api-key-aqui"
+
+# URL pública do backend (opcional, para callbacks)
+backend_public_url = "https://seu-backend.com"
+
+# Nomes dos recursos a serem criados (ajuste se necessário)
+lambda_function_names = {
+  generate_interview_audios    = "GenerateInterviewAudios"
+  generate_interview_questions = "GenerateInterviewQuestions"
+  generate_interview_report    = "GenerateInterviewReport"
+  generate_presigned_url      = "GeneratePresignedURL"
+  generate_upload_urls         = "GenerateUploadURLs"
+  process_upload_queue        = "ProcessUploadQueue"
+  transcribe_responses        = "TranscribeResponses"
+}
+
+sqs_queue_name = "interview-upload-queue"
+sns_topic_name = "interview-transcription-events"
+
+
